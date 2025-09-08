@@ -1,0 +1,14 @@
+# List installed plugins
+cargo run -- plugin list
+
+# Install a plugin from a local file
+cargo run -- plugin install ./my_plugin.toml
+
+# Remove a plugin
+cargo run -- plugin remove example-plugin
+
+# Test regex matching
+cargo run -- run "commit all changes with message 'test commit'"
+
+# Test Rust function plugin
+cargo run -- run "show context"
