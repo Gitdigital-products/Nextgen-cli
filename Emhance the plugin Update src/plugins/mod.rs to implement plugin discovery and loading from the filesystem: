@@ -1,0 +1,90 @@
+use serde::Deserialize;
+use std::collections::HashMap;
+use std::fs;
+use std::path::PathBuf;
+use log::{info, error, warn};
+use dirs::config_dir;
+
+#[derive(Debug, Deserialize)]
+pub struct PluginManifest {
+    pub name: String,
+    pub version: String,
+    pub description: Option<String>,
+    pub commands: HashMap<String, PluginCommand>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PluginCommand {
+    pub description: String,
+    pub pattern: String,
+    pub action: String,
+}
+
+pub struct PluginManager {
+    plugins: Vec<PluginManifest>,
+}
+
+impl PluginManager {
+    pub fn new() -> Self {
+        Self {
+            plugins: Vec::new(),
+        }
+    }
+    
+    pub fn load_plugins(&mut self) -> anyhow::Result<()> {
+        info!("Loading plugins...");
+        let plugin_dir = Self::get_plugin_dir();
+        if !plugin_dir.exists() {
+            info!("Plugin directory does not exist, creating: {:?}", plugin_dir);
+            fs::create_dir_all(&plugin_dir)?;
+            return Ok(());
+        }
+        
+        let entries = fs::read_dir(plugin_dir)?;
+        for entry in entries {
+            let entry = entry?;
+            let path = entry.path();
+            if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("toml") {
+                match Self::load_plugin_manifest(&path) {
+                    Ok(manifest) => {
+                        info!("Loaded plugin: {}", manifest.name);
+                        self.plugins.push(manifest);
+                    }
+                    Err(e) => {
+                        error!("Failed to load plugin from {:?}: {}", path, e);
+                    }
+                }
+            }
+        }
+        
+        info!("Loaded {} plugins", self.plugins.len());
+        Ok(())
+    }
+    
+    fn load_plugin_manifest(path: &PathBuf) -> anyhow::Result<PluginManifest> {
+        let content = fs::read_to_string(path)?;
+        let manifest: PluginManifest = toml::from_str(&content)?;
+        Ok(manifest)
+    }
+    
+    fn get_plugin_dir() -> PathBuf {
+        if let Some(mut config_dir) = config_dir() {
+            config_dir.push("axiom");
+            config_dir.push("plugins");
+            config_dir
+        } else {
+            PathBuf::from("./plugins") // Fallback to current directory
+        }
+    }
+    
+    pub fn get_plugin_command(&self, command: &str) -> Option<&PluginCommand> {
+        for plugin in &self.plugins {
+            for (_, plugin_cmd) in &plugin.commands {
+                if command.contains(&plugin_cmd.pattern) {
+                    return Some(plugin_cmd);
+                }
+            }
+        }
+        None
+    }
+}
