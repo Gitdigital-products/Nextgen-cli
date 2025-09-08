@@ -1,0 +1,24 @@
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::context::EnvironmentContext;
+    use std::path::PathBuf;
+
+    #[test]
+    fn test_execute_shell_command() {
+        let context = EnvironmentContext {
+            current_dir: PathBuf::from("."),
+            current_dir_str: ".".to_string(),
+            project_type: None,
+            git_branch: None,
+            git_status: None,
+            os: "linux".to_string(),
+            shell: "bash".to_string(),
+            available_tools: Default::default(),
+        };
+        
+        let result = execute_shell_command("echo", &["hello", "world"], &context);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().trim(), "hello world");
+    }
+}
