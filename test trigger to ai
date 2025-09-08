@@ -1,0 +1,2 @@
+# Test with a complex command that needs AI
+cargo run -- run "find all files modified in the last 2 days and show me their sizes"
