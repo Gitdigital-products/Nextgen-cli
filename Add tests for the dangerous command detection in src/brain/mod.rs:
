@@ -1,0 +1,13 @@
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_dangerous_command_detection() {
+        assert!(is_dangerous_command("rm -rf /"));
+        assert!(is_dangerous_command("format C:"));
+        assert!(is_dangerous_command("chmod 777 /etc/passwd"));
+        assert!(!is_dangerous_command("ls -la"));
+        assert!(!is_dangerous_command("echo hello"));
+    }
+}
