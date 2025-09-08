@@ -1,0 +1,2 @@
+// Add to your src/lib.rs or ensure the module is declared
+pub mod repl;
