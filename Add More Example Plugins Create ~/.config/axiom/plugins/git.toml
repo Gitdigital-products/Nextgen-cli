@@ -1,0 +1,23 @@
+name = "git-plugin"
+version = "0.1.0"
+description = "Git operations plugin for Axiom"
+
+[commands.status]
+description = "Show git status with detailed information"
+pattern = "git status|check git|what's changed"
+action = "git status -s"
+
+[commands.commit]
+description = "Commit all changes with a message"
+pattern = "commit all|save changes|git commit"
+action = "git add -A && git commit -m"
+
+[commands.branch]
+description = "List all branches"
+pattern = "list branches|git branch|show branches"
+action = "git branch -a"
+
+[commands.log]
+description = "Show recent commits"
+pattern = "git log|show history|recent commits"
+action = "git log --oneline -10"
