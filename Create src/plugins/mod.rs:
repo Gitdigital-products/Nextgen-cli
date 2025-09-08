@@ -1,0 +1,46 @@
+use serde::Deserialize;
+use std::collections::HashMap;
+use log::{info, error};
+
+#[derive(Debug, Deserialize)]
+pub struct PluginManifest {
+    pub name: String,
+    pub version: String,
+    pub commands: HashMap<String, PluginCommand>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PluginCommand {
+    pub description: String,
+    pub pattern: String,
+    pub action: String,
+}
+
+pub struct PluginManager {
+    plugins: Vec<PluginManifest>,
+}
+
+impl PluginManager {
+    pub fn new() -> Self {
+        Self {
+            plugins: Vec::new(),
+        }
+    }
+    
+    pub fn load_plugins(&mut self) -> anyhow::Result<()> {
+        info!("Loading plugins...");
+        // TODO: Implement plugin discovery and loading from filesystem
+        Ok(())
+    }
+    
+    pub fn get_plugin_command(&self, command: &str) -> Option<&PluginCommand> {
+        for plugin in &self.plugins {
+            for (_, plugin_cmd) in &plugin.commands {
+                if command.contains(&plugin_cmd.pattern) {
+                    return Some(plugin_cmd);
+                }
+            }
+        }
+        None
+    }
+}
