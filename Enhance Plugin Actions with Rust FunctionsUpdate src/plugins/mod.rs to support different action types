@@ -1,0 +1,47 @@
+use serde::Deserialize;
+
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+pub enum PluginAction {
+    ShellCommand { command: String },
+    RustFunction { function: String },
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PluginCommand {
+    pub description: String,
+    pub pattern: String,
+    #[serde(default)]
+    pub regex: bool,
+    pub action: PluginAction,
+}
+
+// Add this method to PluginManager
+pub async fn execute_plugin_command(
+    &self,
+    command: &PluginCommand,
+    context: &crate::context::EnvironmentContext,
+) -> anyhow::Result<()> {
+    match &command.action {
+        PluginAction::ShellCommand { command: cmd } => {
+            let output = crate::core::executor::execute_shell_command("sh", &["-c", cmd], context)?;
+            println!("{}", output);
+        }
+        PluginAction::RustFunction { function: func_name } => {
+            // Here we would call a Rust function based on the name
+            // For now, we'll implement a simple mapping
+            match func_name.as_str() {
+                "show_context" => {
+                    println!("Current context: {:?}", context);
+                }
+                "show_plugins" => {
+                    println!("Installed plugins: {:?}", self.get_plugin_names());
+                }
+                _ => {
+                    return Err(anyhow::anyhow!("Unknown function: {}", func_name));
+                }
+            }
+        }
+    }
+    Ok(())
+}
