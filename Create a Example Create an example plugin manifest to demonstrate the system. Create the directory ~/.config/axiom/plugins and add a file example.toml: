@@ -1,0 +1,13 @@
+name = "example-plugin"
+version = "0.1.0"
+description = "An example plugin for Axiom"
+
+[commands.greet]
+description = "Greet the user"
+pattern = "say hello"
+action = "echo 'Hello from Axiom plugin!'"
+
+[commands.time]
+description = "Show current time"
+pattern = "what time is it"
+action = "date"
