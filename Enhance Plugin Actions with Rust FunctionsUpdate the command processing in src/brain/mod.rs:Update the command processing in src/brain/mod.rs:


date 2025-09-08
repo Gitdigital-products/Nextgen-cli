@@ -1,0 +1,9 @@
+// In the plugin matching section
+if let Some(plugin_cmd) = plugin_manager.get_plugin_command(command_str) {
+    info!("Plugin command matched: {:?}", plugin_cmd);
+    println!("Plugin: {}", plugin_cmd.description);
+    
+    // Execute the plugin action
+    plugin_manager.execute_plugin_command(plugin_cmd, context).await?;
+    return Ok(());
+}
