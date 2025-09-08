@@ -1,0 +1,6 @@
+pub mod management;
+
+// Add this method to PluginManager
+pub fn get_plugin_names(&self) -> Vec<String> {
+    self.plugins.iter().map(|p| p.name.clone()).collect()
+}
