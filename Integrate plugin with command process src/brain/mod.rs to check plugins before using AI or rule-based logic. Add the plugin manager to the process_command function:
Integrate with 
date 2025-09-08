@@ -1,0 +1,28 @@
+// ... existing imports
+use crate::plugins::PluginManager;
+
+pub async fn process_command(
+    command_str: &str,
+    context: &EnvironmentContext,
+    config: &AxiomConfig,
+    plugin_manager: &PluginManager, // Add plugin_manager parameter
+) -> anyhow::Result<()> {
+    info!("Processing command: '{}'", command_str);
+    
+    // First, check if a plugin handles this command
+    if let Some(plugin_cmd) = plugin_manager.get_plugin_command(command_str) {
+        info!("Plugin command matched: {}", plugin_cmd.action);
+        println!("Plugin: {}", plugin_cmd.action);
+        // Execute the plugin action
+        let output = executor::execute_shell_command("sh", &["-c", &plugin_cmd.action], context)?;
+        println!("{}", output);
+        return Ok(());
+    }
+    
+    // If no plugin matches, proceed with AI or rule-based logic
+    let context_string = serde_json::to_string_pretty(&context)?;
+    debug!("Context: {}", context_string);
+    
+    // ... rest of the existing AI and rule-based logic
+    // Note: You'll need to adjust the function calls to include plugin_manager
+}
