@@ -1,0 +1,7 @@
+[book]
+title = "Axiom CLI"
+authors = ["Your Name"]
+description = "The cognitive, AI-powered command-line interface"
+
+[build]
+create-missing = true
