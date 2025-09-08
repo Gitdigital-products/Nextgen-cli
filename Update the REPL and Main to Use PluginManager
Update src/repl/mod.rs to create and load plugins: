@@ -1,0 +1,58 @@
+use crate::brain::process_command;
+use crate::config::AxiomConfig;
+use crate::context;
+use crate::plugins::PluginManager;
+use std::io::{self, Write};
+use log::{info, error};
+
+pub async fn start_repl(config: AxiomConfig) -> anyhow::Result<()> {
+    println!("Starting Axiom REPL. Type 'exit' or 'quit' to end session.");
+    println!("Type 'help' for available commands.");
+    
+    // Initialize plugin manager
+    let mut plugin_manager = PluginManager::new();
+    if let Err(e) = plugin_manager.load_plugins() {
+        error!("Failed to load plugins: {}", e);
+    }
+    
+    loop {
+        print!("axiom> ");
+        io::stdout().flush()?;
+        
+        let mut input = String::new();
+        io::stdin().read_line(&mut input)?;
+        let input = input.trim();
+        
+        if input.is_empty() {
+            continue;
+        }
+        
+        match input {
+            "exit" | "quit" => {
+                println!("Goodbye!");
+                break;
+            }
+            "help" => {
+                println!("Available commands:");
+                println!("  <natural language command> - Execute a command");
+                println!("  debug-context              - Show current context");
+                println!("  exit, quit                 - Exit the REPL");
+                println!("  help                       - Show this help");
+            }
+            "debug-context" => {
+                let context = context::gather().await;
+                println!("{}", serde_json::to_string_pretty(&context).unwrap());
+            }
+            _ => {
+                info!("REPL executing command: {}", input);
+                let context = context::gather().await;
+                if let Err(e) = process_command(input, &context, &config, &plugin_manager).await {
+                    error!("Error executing command: {}", e);
+                    eprintln!("Error: {}", e);
+                }
+            }
+        }
+    }
+    
+    Ok(())
+}
