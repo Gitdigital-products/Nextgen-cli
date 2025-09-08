@@ -1,0 +1,10 @@
+// Add to your subcommands in main.rs
+.subcommand(Command::new("plugin")
+    .about("Manage plugins")
+    .subcommand(Command::new("list").about("List all installed plugins"))
+    .subcommand(Command::new("install")
+        .about("Install a plugin")
+        .arg(Arg::new("URL_OR_PATH").required(true)))
+    .subcommand(Command::new("remove")
+        .about("Remove a plugin")
+        .arg(Arg::new("NAME").required(true))))
