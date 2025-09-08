@@ -1,0 +1,13 @@
+fn is_dangerous_command(command: &str) -> bool {
+    let dangerous_keywords = ["rm", "format", "chmod", "chown", "dd", ">", "mv", "mkfs"];
+    dangerous_keywords.iter().any(|kw| command.contains(kw))
+}
+
+fn confirm_execution() -> anyhow::Result<bool> {
+    use dialoguer::Confirm;
+    
+    Ok(Confirm::new()
+        .with_prompt("Do you want to run this command?")
+        .default(false)
+        .interact()?)
+}
