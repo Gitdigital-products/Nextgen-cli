@@ -1,0 +1,3 @@
+[dependencies]
+# ... existing dependencies
+toml = "0.8"  # For parsing TOML plugin manifests
