@@ -1,0 +1,11 @@
+# Test 1: List files
+cargo run -- run "list files in this directory"
+
+# Test 2: Find a file
+cargo run -- run "find file"
+
+# Test 3: Check git status (try this in a git repo and outside of one)
+cargo run -- run "what's my git status?"
+
+# Test 4: Try something it doesn't understand
+cargo run -- run "how is the weather today?"
