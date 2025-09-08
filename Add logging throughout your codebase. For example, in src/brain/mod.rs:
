@@ -1,0 +1,43 @@
+pub async fn process_command(
+    command_str: &str,
+    context: &EnvironmentContext,
+    config: &AxiomConfig,
+) -> anyhow::Result<()> {
+    info!("Processing command: '{}'", command_str);
+    
+    // Convert context to string for AI prompts
+    let context_string = serde_json::to_string_pretty(&context)?;
+    debug!("Context: {}", context_string);
+    
+    // Try to get a command from AI, with fallback logic
+    let ai_command_result = try_get_ai_command(command_str, &context_string, &config.ai).await;
+
+    match ai_command_result {
+        Ok(ai_command) => {
+            info!("AI suggested command: {}", ai_command);
+            
+            // Safety check: confirm dangerous commands
+            if is_dangerous_command(&ai_command) {
+                warn!("Potentially dangerous command detected: {}", ai_command);
+                if !confirm_execution(&ai_command)? {
+                    info!("User cancelled dangerous command execution");
+                    return Ok(());
+                }
+            }
+            
+            info!("Executing command: {}", ai_command);
+            // Execute the AI-suggested command
+            let output = executor::execute_shell_command("sh", &["-c", &ai_command], context)?;
+            info!("Command executed successfully");
+            println!("{}", output);
+        }
+        Err(e) => {
+            // If AI fails, fall back to rule-based logic
+            warn!("AI processing failed: {}", e);
+            info!("Falling back to rule-based logic");
+            fallback_to_rules(command_str, context).await?;
+        }
+    }
+
+    Ok(())
+}
