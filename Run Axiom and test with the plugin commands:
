@@ -1,0 +1,5 @@
+cargo run -- run "say hello"
+# Should output: Hello from Axiom plugin!
+
+cargo run -- run "what time is it"
+# Should output the current date and time
