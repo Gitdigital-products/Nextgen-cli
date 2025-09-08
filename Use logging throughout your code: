@@ -1,0 +1,5 @@
+use log::{info, warn, error};
+
+// In process_command:
+info!("Processing command: {}", command_str);
+warn!("Falling back to rule-based logic");
