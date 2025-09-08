@@ -1,0 +1,14 @@
+// Add to the top of the file
+use log::{info, warn, error};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize logging
+    env_logger::init();
+    
+    info!("Starting Axiom...");
+    
+    // Load user configuration
+    let cfg = config::load().await?;
+    // ... rest of your main function
+}
