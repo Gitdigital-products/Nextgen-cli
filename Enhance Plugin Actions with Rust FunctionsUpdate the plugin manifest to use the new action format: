@@ -1,0 +1,9 @@
+[commands.status]
+description = "Show git status with detailed information"
+pattern = "git status|check git|what's changed"
+action = { command = "git status -s" }
+
+[commands.context]
+description = "Show current context information"
+pattern = "show context|debug info"
+action = { function = "show_context" }
