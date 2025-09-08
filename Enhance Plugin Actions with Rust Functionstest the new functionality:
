@@ -1,0 +1,13 @@
+} else if let Some(matches) = matches.subcommand_matches("plugin") {
+    if let Some(_) = matches.subcommand_matches("list") {
+        plugins::management::list_plugins(&plugin_manager).await?;
+    } else if let Some(matches) = matches.subcommand_matches("install") {
+        let url_or_path = matches.get_one::<String>("URL_OR_PATH").unwrap();
+        plugins::management::install_plugin(url_or_path).await?;
+    } else if let Some(matches) = matches.subcommand_matches("remove") {
+        let name = matches.get_one::<String>("NAME").unwrap();
+        plugins::management::remove_plugin(name).await?;
+    } else {
+        println!("Run 'axiom plugin --help' for usage information.");
+    }
+}
