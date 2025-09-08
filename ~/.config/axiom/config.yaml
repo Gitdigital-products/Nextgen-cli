@@ -1,0 +1,8 @@
+ai:
+  local_model: "llama2"
+  cloud_fallback: true # Enable the AI!
+  openai_api_key: "sk-your-key-here" # Paste your key here
+  openai_model: "gpt-3.5-turbo"
+ui:
+  theme: "dark"
+  rich_output: true
