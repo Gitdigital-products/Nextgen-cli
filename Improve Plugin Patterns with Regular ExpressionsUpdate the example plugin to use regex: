@@ -1,0 +1,5 @@
+[commands.commit]
+description = "Commit all changes with a message"
+pattern = "commit( all)?( changes)?( with message)?"
+action = "git add -A && git commit -m"
+regex = true
