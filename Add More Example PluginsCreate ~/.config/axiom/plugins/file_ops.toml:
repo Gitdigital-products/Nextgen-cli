@@ -1,0 +1,18 @@
+name = "file-operations"
+version = "0.1.0"
+description = "File operations plugin for Axiom"
+
+[commands.find]
+description = "Find files by name"
+pattern = "find file|search for|locate"
+action = "find . -name"
+
+[commands.size]
+description = "Show disk usage"
+pattern = "disk usage|folder size|how big"
+action = "du -sh"
+
+[commands.clean]
+description = "Clean up temporary files"
+pattern = "clean up|remove temp|delete temporary"
+action = "find . -name '*.tmp' -delete && find . -name '*.log' -delete"
