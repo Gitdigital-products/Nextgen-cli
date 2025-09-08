@@ -1,0 +1,7 @@
+// ... (existing code)
+    } else if let Some(_) = matches.subcommand_matches("debug-context") {
+        // Pretty-print the context for debugging
+        let context = context::gather().await;
+        println!("{}", serde_json::to_string_pretty(&context).unwrap());
+    } else {
+// ... (existing code)
