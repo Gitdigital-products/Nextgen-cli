@@ -1,0 +1,96 @@
+mod cloud_ai;
+mod local_ai; // Add this line to declare the new local_ai module
+
+use crate::config::AxiomConfig;
+use crate::context::EnvironmentContext;
+use crate::core::executor;
+use serde_json;
+
+pub async fn process_command(
+    command_str: &str,
+    context: &EnvironmentContext,
+    config: &AxiomConfig,
+) -> anyhow::Result<()> {
+    println!("Axiom is thinking... 🤔");
+
+    // Convert context to string for AI prompts
+    let context_string = serde_json::to_string_pretty(&context)?;
+    
+    // Try to get a command from AI, with fallback logic
+    let ai_command_result = try_get_ai_command(command_str, &context_string, &config.ai).await;
+
+    match ai_command_result {
+        Ok(ai_command) => {
+            println!("AI suggests: {}", ai_command);
+            println!("Executing...");
+            
+            // Execute the AI-suggested command
+            let output = executor::execute_shell_command("sh", &["-c", &ai_command], context)?;
+            println!("{}", output);
+        }
+        Err(e) => {
+            // If AI fails, fall back to rule-based logic
+            println!("AI not available: {}", e);
+            fallback_to_rules(command_str, context).await?;
+        }
+    }
+
+    Ok(())
+}
+
+async fn try_get_ai_command(command: &str, context: &str, ai_config: &AIConfig) -> anyhow::Result<String> {
+    // First, try local AI
+    if ai_config.cloud_fallback {
+        match local_ai::process_with_local_ai(command, context, ai_config).await {
+            Ok(cmd) => return Ok(cmd),
+            Err(local_err) => {
+                println!("Local AI failed: {}", local_err);
+                // If local fails, fall back to cloud AI if configured
+                if let Some(_) = ai_config.openai_api_key {
+                    println!("Trying cloud AI...");
+                    return cloud_ai::process_with_cloud_ai(command, context, ai_config)
+                        .await
+                        .map_err(|e| anyhow::anyhow!("Both local and cloud AI failed: {}", e));
+                }
+                return Err(local_err);
+            }
+        }
+    }
+    
+    // If no fallback is configured, just try local
+    local_ai::process_with_local_ai(command, context, ai_config).await
+}
+
+async fn fallback_to_rules(command_str: &str, context: &EnvironmentContext) -> anyhow::Result<()> {
+    println!("(Falling back to rule-based logic)");
+    let command = command_str.to_lowercase();
+    
+    if command.contains("find file") || command.contains("look for file") {
+        println!("I'll help you find a file.");
+        let find_output = executor::execute_shell_command("find", &[".", "-name", "*.rs"], context)?;
+        println!("Found Rust files:\n{}", find_output);
+    } else if command.contains("list file") || command.contains("ls") || command.contains("directory") {
+        println!("Listing files for you:");
+        let ls_output = executor::execute_shell_command("ls", &["-la"], context)?;
+        println!("{}", ls_output);
+    } else if command.contains("what's in") || command.contains("show me") {
+        println!("Let me show you what's here:");
+        let ls_output = executor::execute_shell_command("ls", &["-la"], context)?;
+        println!("{}", ls_output);
+    } else if command.contains("git status") {
+        if let Some(status) = &context.git_status {
+            println!("Git status is: {}", status);
+        } else {
+            println!("This doesn't seem to be a git repository.");
+        }
+    } else {
+        println!("I'm still learning. I heard you say: '{}'", command_str);
+        println!("Let me show you what I *do* know about your environment:");
+        println!("You are in: {}", context.current_dir_str);
+        println!("OS: {}", context.os);
+        println!("Project type: {:?}", context.project_type);
+        println!("Git branch: {:?}", context.git_branch);
+    }
+    
+    Ok(())
+}
