@@ -1,0 +1,62 @@
+// ... existing imports
+use dialoguer::Confirm;
+
+pub async fn process_command(
+    command_str: &str,
+    context: &EnvironmentContext,
+    config: &AxiomConfig,
+) -> anyhow::Result<()> {
+    println!("Axiom is thinking... 🤔");
+
+    // Convert context to string for AI prompts
+    let context_string = serde_json::to_string_pretty(&context)?;
+    
+    // Try to get a command from AI, with fallback logic
+    let ai_command_result = try_get_ai_command(command_str, &context_string, &config.ai).await;
+
+    match ai_command_result {
+        Ok(ai_command) => {
+            println!("AI suggests: {}", ai_command);
+            
+            // Safety check: confirm dangerous commands
+            if is_dangerous_command(&ai_command) {
+                if !confirm_execution(&ai_command)? {
+                    println!("Command execution cancelled.");
+                    return Ok(());
+                }
+            }
+            
+            println!("Executing...");
+            
+            // Execute the AI-suggested command
+            let output = executor::execute_shell_command("sh", &["-c", &ai_command], context)?;
+            println!("{}", output);
+        }
+        Err(e) => {
+            // If AI fails, fall back to rule-based logic
+            println!("AI not available: {}", e);
+            fallback_to_rules(command_str, context).await?;
+        }
+    }
+
+    Ok(())
+}
+
+// Helper function to detect potentially dangerous commands
+fn is_dangerous_command(command: &str) -> bool {
+    let dangerous_keywords = [
+        "rm ", "rm -", "rmrf", "format", "chmod", "chown", "dd ", "mkfs", 
+        "> /", ">> /", "mv /", "> /dev/", "shred", "wipe", "fdisk"
+    ];
+    
+    let command_lower = command.to_lowercase();
+    dangerous_keywords.iter().any(|kw| command_lower.contains(kw))
+}
+
+// Helper function to confirm command execution
+fn confirm_execution(command: &str) -> anyhow::Result<bool> {
+    Ok(Confirm::new()
+        .with_prompt(format!("⚠️  Run this potentially dangerous command?\n   {}", command))
+        .default(false)
+        .interact()?)
+}
