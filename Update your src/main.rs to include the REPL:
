@@ -1,0 +1,22 @@
+// Add to your imports
+mod repl;
+
+// In your main function, update the command matching:
+    // Dispatch commands
+    if let Some(matches) = matches.subcommand_matches("run") {
+        let command_str = matches.get_one::<String>("COMMAND").unwrap();
+        info!("Executing command: {}", command_str);
+        // Pass the command and context to the AI brain for processing
+        brain::process_command(command_str, &current_context, &cfg).await?;
+    } else if let Some(_) = matches.subcommand_matches("install") {
+        println!("Installing package... (This will find the correct package manager)");
+        // core::install::run(...).await?;
+    } else if let Some(_) = matches.subcommand_matches("debug-context") {
+        println!("{:?}", current_context);
+    } else if let Some(_) = matches.subcommand_matches("repl") {
+        // Start the interactive REPL
+        repl::start_repl(cfg).await?;
+    } else {
+        // If no subcommand provided, start the REPL
+        repl::start_repl(cfg).await?;
+    }
