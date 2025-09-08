@@ -1,0 +1,10 @@
+fn is_dangerous_command(command: &str) -> bool {
+    let dangerous_prefixes = [
+        "rm ", "rm -", "mv ", "dd ", ">", "chmod", "chown", "mkfs", "fdisk",
+    ];
+
+    let trimmed_command = command.trim();
+    dangerous_prefixes
+        .iter()
+        .any(|prefix| trimmed_command.starts_with(prefix))
+}
