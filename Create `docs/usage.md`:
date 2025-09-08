@@ -1,0 +1,16 @@
+
+**Create `docs/usage.md`:**
+```md
+# Usage
+
+## Basic Commands
+
+```bash
+# Run a single command
+axiom run "list all files in this directory"
+
+# Start interactive mode
+axiom repl
+
+# Show debug information
+axiom debug-context
