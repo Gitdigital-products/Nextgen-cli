@@ -1,0 +1,36 @@
+// ... existing code
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    env_logger::init();
+    info!("Starting Axiom...");
+    
+    let cfg = config::load().await?;
+    let current_context = context::gather().await;
+
+    // Initialize plugin manager
+    let mut plugin_manager = plugins::PluginManager::new();
+    if let Err(e) = plugin_manager.load_plugins() {
+        error!("Failed to load plugins: {}", e);
+    }
+
+    let matches = Command::new("axiom")
+        // ... existing subcommands
+        .get_matches();
+
+    if let Some(matches) = matches.subcommand_matches("run") {
+        let command_str = matches.get_one::<String>("COMMAND").unwrap();
+        info!("Executing command: {}", command_str);
+        brain::process_command(command_str, &current_context, &cfg, &plugin_manager).await?;
+    } else if let Some(_) = matches.subcommand_matches("install") {
+        println!("Installing package... (This will find the correct package manager)");
+    } else if let Some(_) = matches.subcommand_matches("debug-context") {
+        println!("{:?}", current_context);
+    } else if let Some(_) = matches.subcommand_matches("repl") {
+        repl::start_repl(cfg).await?;
+    } else {
+        repl::start_repl(cfg).await?;
+    }
+
+    Ok(())
+}
