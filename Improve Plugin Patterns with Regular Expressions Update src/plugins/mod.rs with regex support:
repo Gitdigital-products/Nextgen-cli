@@ -1,0 +1,31 @@
+use regex::Regex;
+// ... other imports
+
+#[derive(Debug, Deserialize)]
+pub struct PluginCommand {
+    pub description: String,
+    pub pattern: String,
+    pub action: String,
+    #[serde(default)]
+    pub regex: bool, // Whether to treat pattern as regex
+}
+
+// Update the get_plugin_command method in PluginManager
+pub fn get_plugin_command(&self, command: &str) -> Option<&PluginCommand> {
+    for plugin in &self.plugins {
+        for (_, plugin_cmd) in &plugin.commands {
+            if plugin_cmd.regex {
+                // Use regex matching
+                if let Ok(re) = Regex::new(&plugin_cmd.pattern) {
+                    if re.is_match(command) {
+                        return Some(plugin_cmd);
+                    }
+                }
+            } else if command.contains(&plugin_cmd.pattern) {
+                // Use simple string matching
+                return Some(plugin_cmd);
+            }
+        }
+    }
+    None
+}
